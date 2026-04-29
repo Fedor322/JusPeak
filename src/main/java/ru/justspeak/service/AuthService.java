@@ -37,11 +37,14 @@ public class AuthService {
 
     @Transactional
     public ApiAuthRegisterPost201Response register(UserRegisterRequest userRegisterRequest) {
-
         UsersRecord recordUser = UserMapper.toRecord(userRegisterRequest, passwordEncoder);
+        recordUser.setRole("ROLE_USER");
+        recordUser.setCreatedAt(java.time.LocalDateTime.now());
+        recordUser.setIsVerified(false);
+        recordUser.setDeleted(false);
         UsersRecord savedUser = userRepository.save(recordUser);
         ProfilesRecord profilesRecord = profileRepository.create(savedUser, userRegisterRequest);
-        return new ApiAuthRegisterPost201Response().message("Success");
+        return new ApiAuthRegisterPost201Response().message("Success").userId(savedUser.getId());
     }
 
 

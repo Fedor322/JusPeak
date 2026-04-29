@@ -12,7 +12,6 @@ import java.util.Collections;
 
 public class CustomUserDetails implements UserDetails {
 
-    @Getter
     private final Long id;
     private final String username;
     private final String password;
@@ -28,6 +27,9 @@ public class CustomUserDetails implements UserDetails {
         );
     }
 
+    public Long getId() {
+        return id;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
