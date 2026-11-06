@@ -1,6 +1,5 @@
 package ru.justspeak.model;
 
-
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,7 +17,6 @@ public class CustomUserDetails implements UserDetails {
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
 
-
     public CustomUserDetails(UsersRecord record) {
         this.id = record.getId();
         this.username = record.getUsername();
@@ -28,6 +26,9 @@ public class CustomUserDetails implements UserDetails {
         );
     }
 
+    public Long getId() {
+        return id;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

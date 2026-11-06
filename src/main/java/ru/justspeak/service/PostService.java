@@ -1,6 +1,9 @@
 package ru.justspeak.service;
 
-
+import org.jooq.Condition;
+import org.jooq.SortField;
+import org.jooq.impl.DSL;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import ru.justspeak.api.dto.ApiPostsGet200Response;
 import ru.justspeak.api.dto.ApiPostsPost201Response;
@@ -8,13 +11,14 @@ import ru.justspeak.api.dto.ApiPostsPostIdPut200Response;
 import ru.justspeak.api.dto.PostCreateRequest;
 import ru.justspeak.api.dto.PostResponse;
 import ru.justspeak.api.dto.PostUpdateRequest;
-import ru.justspeak.api.dto.UserResponse;
 import ru.justspeak.jooq.tables.records.PostsRecord;
 import ru.justspeak.repository.PostRepository;
 import ru.justspeak.util.PostMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static ru.justspeak.jooq.tables.Posts.POSTS;
 
 @Service
 public class PostService {
@@ -25,7 +29,6 @@ public class PostService {
         this.postRepository = postRepository;
     }
 
-
     public ApiPostsPost201Response savePost(PostCreateRequest request, Long userId) {
         PostsRecord record = PostMapper.toRecord(request);
         record.setUserid(userId);
@@ -35,9 +38,28 @@ public class PostService {
         record.setCreatedAt(LocalDateTime.now());
         PostsRecord savedRecord = postRepository.save(record);
         return PostMapper.toPost201Response(savedRecord);
-
     }
 
+    public ApiPostsGet200Response getPosts(int page, int size, String sortBy, String direction, Boolean published) {
+        Condition condition = DSL.noCondition();
+        if (published != null) {
+            condition = condition.and(POSTS.PUBLISHED.eq(published));
+        }
+
+        SortField<?> sortField = "asc".equalsIgnoreCase(direction) ? POSTS.CREATED_AT.asc() : POSTS.CREATED_AT.desc();
+        if ("views".equalsIgnoreCase(sortBy)) {
+            sortField = "asc".equalsIgnoreCase(direction) ? POSTS.VIEWS.asc() : POSTS.VIEWS.desc();
+        } else if ("title".equalsIgnoreCase(sortBy)) {
+            sortField = "asc".equalsIgnoreCase(direction) ? POSTS.TITLE.asc() : POSTS.TITLE.desc();
+        }
+
+        int totalElements = postRepository.count(condition);
+        int totalPages = size > 0 ? (int) Math.ceil((double) totalElements / size) : 1;
+        int offset = Math.max(0, page * size);
+
+        List<PostsRecord> records = postRepository.findPage(condition, sortField, size, offset);
+        return PostMapper.toPostsGet200Response(records, totalElements, totalPages);
+    }
 
     public ApiPostsGet200Response getPostsByUserId(Long userId) {
         List<PostsRecord> records = postRepository.findAllPostByUserId(userId);
@@ -45,24 +67,35 @@ public class PostService {
     }
 
     public PostResponse getPostById(Long postId) {
+        postRepository.incrementViews(postId);
         PostsRecord record = postRepository.findById(postId);
+        if (record == null) {
+            return null;
+        }
         return PostMapper.toResponse(record);
     }
 
-
-
-    public ApiPostsPostIdPut200Response updatePost(Long id, PostUpdateRequest request) {
+    public ApiPostsPostIdPut200Response updatePost(Long id, PostUpdateRequest request, Long userId) {
         PostsRecord record = postRepository.findById(id);
+        if (record == null) {
+            throw new RuntimeException("Post not found with id: " + id);
+        }
+        if (!record.getUserid().equals(userId)) {
+            throw new AccessDeniedException("Access denied: you are not the author of this post");
+        }
         PostsRecord newRecord = PostMapper.updateFromResponse(record, request);
         postRepository.update(newRecord);
         return new ApiPostsPostIdPut200Response().id(newRecord.getId()).title(newRecord.getTitle());
-
     }
 
-
-
-
-
-
-
+    public void deletePost(Long id, Long userId) {
+        PostsRecord record = postRepository.findById(id);
+        if (record == null) {
+            throw new RuntimeException("Post not found with id: " + id);
+        }
+        if (!record.getUserid().equals(userId)) {
+            throw new AccessDeniedException("Access denied: you are not the author of this post");
+        }
+        postRepository.deleteById(id);
+    }
 }

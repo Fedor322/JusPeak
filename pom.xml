@@ -72,6 +72,14 @@
             <version>${postgresql.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
@@ -203,25 +211,41 @@
                         </goals>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-meta-extensions</artifactId>
+                        <version>${jooq.version}</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
-                    <jdbc>
-                        <driver>org.postgresql.Driver</driver>
-                        <url>${jooq.url}</url>
-                        <user>${jooq.user}</user>
-                        <password>${jooq.password}</password>
-                    </jdbc>
                     <generator>
                         <database>
-                            <name>org.jooq.meta.postgres.PostgresDatabase</name>
-                            <includes>.*</includes>
-                            <excludes></excludes>
-                            <inputSchema>public</inputSchema>
+                            <name>org.jooq.meta.extensions.ddl.DDLDatabase</name>
                             <properties>
                                 <property>
-                                    <key>defaultIncrement</key>
-                                    <value>1</value>
+                                    <key>scripts</key>
+                                    <value>src/main/resources/db/migration/*</value>
+                                </property>
+                                <property>
+                                    <key>sort</key>
+                                    <value>flyway</value>
+                                </property>
+                                <property>
+                                    <key>unqualifiedSchema</key>
+                                    <value>public</value>
+                                </property>
+                                <property>
+                                    <key>defaultNameCase</key>
+                                    <value>as_is</value>
                                 </property>
                             </properties>
+                            <forcedTypes>
+                                <forcedType>
+                                    <name>JSONB</name>
+                                    <includeTypes>(?i:json|jsonb)</includeTypes>
+                                </forcedType>
+                            </forcedTypes>
                         </database>
                         <generate>
                             <daos>true</daos>

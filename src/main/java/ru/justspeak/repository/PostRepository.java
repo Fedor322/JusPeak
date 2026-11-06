@@ -1,7 +1,9 @@
 package ru.justspeak.repository;
 
-
+import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.SortField;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 import ru.justspeak.config.JooqConfig;
 import ru.justspeak.jooq.tables.records.PostsRecord;
@@ -21,11 +23,9 @@ public class PostRepository {
         this.context = context;
     }
 
-
     public PostsRecord save(PostsRecord record) {
-       return context.insertInto(POSTS).set(record).returning().fetchOne();
+        return context.insertInto(POSTS).set(record).returning().fetchOne();
     }
-
 
     public PostsRecord findById(Long id) {
         return context.selectFrom(POSTS).where(POSTS.ID.eq(id)).fetchOne();
@@ -35,23 +35,34 @@ public class PostRepository {
         return context.selectFrom(POSTS).where(POSTS.USERID.eq(userId)).fetch();
     }
 
-
     public void update(PostsRecord record) {
-       context.update(POSTS)
+        context.update(POSTS)
                 .set(record)
                 .where(POSTS.ID.eq(record.getId()))
                 .execute();
-
     }
 
+    public void deleteById(Long id) {
+        context.deleteFrom(POSTS).where(POSTS.ID.eq(id)).execute();
+    }
 
+    public void incrementViews(Long id) {
+        context.update(POSTS)
+                .set(POSTS.VIEWS, POSTS.VIEWS.plus(1))
+                .where(POSTS.ID.eq(id))
+                .execute();
+    }
 
+    public int count(Condition condition) {
+        return context.fetchCount(POSTS, condition);
+    }
 
-
-
-
-
-
-
-
+    public List<PostsRecord> findPage(Condition condition, SortField<?> sortField, int limit, int offset) {
+        return context.selectFrom(POSTS)
+                .where(condition)
+                .orderBy(sortField)
+                .limit(limit)
+                .offset(offset)
+                .fetch();
+    }
 }

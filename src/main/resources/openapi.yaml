@@ -240,6 +240,7 @@ components:
 paths:
   /api/auth/register:
     post:
+      security: []
       summary: Регистрация нового пользователя
       requestBody:
         required: true
@@ -262,6 +263,7 @@ paths:
                     format: int64
   /api/auth/login:
     post:
+      security: []
       summary: Аутентификация пользователя и получение JWT токена
       requestBody:
         required: true
@@ -330,6 +332,30 @@ paths:
       responses:
         '200':
           description: Profile information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+    put:
+      summary: Обновление профиля пользователя
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: profileId
+          schema:
+            type: integer
+            format: int64
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
           content:
             application/json:
               schema:
