@@ -3,7 +3,6 @@ package ru.justspeak.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,8 +13,6 @@ import ru.justspeak.api.dto.UserLoginRequest;
 import ru.justspeak.api.dto.UserRegisterRequest;
 import ru.justspeak.service.AuthService;
 
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("api/auth")

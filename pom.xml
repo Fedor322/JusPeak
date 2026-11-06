@@ -69,7 +69,6 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -171,6 +170,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -203,7 +203,6 @@
             <plugin>
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-codegen-maven</artifactId>
-                <version>${jooq.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -232,14 +231,11 @@
                                     <value>flyway</value>
                                 </property>
                                 <property>
-                                    <key>unqualifiedSchema</key>
-                                    <value>public</value>
-                                </property>
-                                <property>
                                     <key>defaultNameCase</key>
-                                    <value>as_is</value>
+                                    <value>lower</value>
                                 </property>
                             </properties>
+                            <outputSchemaToDefault>true</outputSchemaToDefault>
                             <forcedTypes>
                                 <forcedType>
                                     <name>JSONB</name>

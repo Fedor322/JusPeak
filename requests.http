@@ -1,0 +1,63 @@
+### JusPeak API Testing Requests (IntelliJ HTTP Client)
+@host = http://localhost:8080
+@auth_token = 
+
+### 1. Регистрация нового пользователя
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "email": "testuser@example.com",
+  "password": "Password123!",
+  "firstName": "Test",
+  "lastName": "User"
+}
+
+### 2. Логин (получение JWT токена и сохранение в переменную)
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "Password123!"
+}
+
+> {%
+  client.global.set("auth_token", response.body.token);
+  client.log("JWT Token: " + response.body.token);
+%}
+
+### 3. Получить ленту постов (публичный/авторизованный просмотр с пагинацией)
+GET {{host}}/api/posts?page=0&size=10&sortBy=createdAt&direction=desc
+Authorization: Bearer {{auth_token}}
+
+### 4. Создать пост
+POST {{host}}/api/posts
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "title": "Мой первый пост в JusPeak",
+  "content": "Привет, мир! Архитектура Postgres + Reactive Mongo работает отлично.",
+  "published": true
+}
+
+### 5. Получить мои посты
+GET {{host}}/api/posts/my
+Authorization: Bearer {{auth_token}}
+
+### 6. Получить профиль пользователя (по userId = 1)
+GET {{host}}/api/profiles/1
+Authorization: Bearer {{auth_token}}
+
+### 7. Обновить профиль
+PUT {{host}}/api/profiles/1
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json
+
+{
+  "displayName": "JusPeak Creator",
+  "biography": "Разработчик платформы JusPeak",
+  "avatarUrl": "https://example.com/avatar.png"
+}

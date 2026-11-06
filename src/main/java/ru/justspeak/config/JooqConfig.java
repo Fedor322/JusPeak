@@ -1,8 +1,10 @@
 package ru.justspeak.config;
 
-
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.jooq.conf.RenderNameCase;
+import org.jooq.conf.RenderQuotedNames;
+import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +21,15 @@ public class JooqConfig {
     }
 
     @Bean
-    public DSLContext dslContext() {
-        return DSL.using(new TransactionAwareDataSourceProxy(dataSource), SQLDialect.POSTGRES);
+    public Settings jooqSettings() {
+        return new Settings()
+                .withRenderSchema(false)
+                .withRenderNameCase(RenderNameCase.LOWER)
+                .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED);
+    }
+
+    @Bean
+    public DSLContext dslContext(Settings jooqSettings) {
+        return DSL.using(new TransactionAwareDataSourceProxy(dataSource), SQLDialect.POSTGRES, jooqSettings);
     }
 }

@@ -55,7 +55,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable).userDetailsService(customUserDetailsService)
                 .authorizeHttpRequests(
                         auth -> auth.requestMatchers(
-                                "/auth/**","/api/auth/**").permitAll()
+                                "/auth/**",
+                                "/api/auth/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/error").permitAll()
                                 .anyRequest().authenticated()
                 ).sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
