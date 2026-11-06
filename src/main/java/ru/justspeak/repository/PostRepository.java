@@ -2,24 +2,23 @@ package ru.justspeak.repository;
 
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.SortField;
-import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
-import ru.justspeak.config.JooqConfig;
 import ru.justspeak.jooq.tables.records.PostsRecord;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static ru.justspeak.jooq.tables.Posts.POSTS;
 
 @Repository
 public class PostRepository {
 
-    private final JooqConfig config;
     private final DSLContext context;
 
-    public PostRepository(JooqConfig config, DSLContext context) {
-        this.config = config;
+    public PostRepository(DSLContext context) {
         this.context = context;
     }
 
@@ -35,10 +34,23 @@ public class PostRepository {
         return context.selectFrom(POSTS).where(POSTS.USERID.eq(userId)).fetch();
     }
 
-    public void update(PostsRecord record) {
-        context.update(POSTS)
-                .set(record)
-                .where(POSTS.ID.eq(record.getId()))
+    public int updateFields(Long id, String title, String content, Boolean published) {
+        Map<Field<?>, Object> values = new HashMap<>();
+        if (title != null) {
+            values.put(POSTS.TITLE, title);
+        }
+        if (content != null) {
+            values.put(POSTS.CONTENT, content);
+        }
+        if (published != null) {
+            values.put(POSTS.PUBLISHED, published);
+        }
+        if (values.isEmpty()) {
+            return 0;
+        }
+        return context.update(POSTS)
+                .set(values)
+                .where(POSTS.ID.eq(id))
                 .execute();
     }
 
@@ -46,11 +58,12 @@ public class PostRepository {
         context.deleteFrom(POSTS).where(POSTS.ID.eq(id)).execute();
     }
 
-    public void incrementViews(Long id) {
-        context.update(POSTS)
+    public PostsRecord incrementViewsAndGet(Long id) {
+        return context.update(POSTS)
                 .set(POSTS.VIEWS, POSTS.VIEWS.plus(1))
                 .where(POSTS.ID.eq(id))
-                .execute();
+                .returning()
+                .fetchOne();
     }
 
     public int count(Condition condition) {

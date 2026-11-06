@@ -55,6 +55,7 @@ public class ProfileMapper {
         updateIfPresent(request.getLastName(), record::setLastName);
         updateIfPresent(request.getDisplayName(), record::setDisplayName);
         updateIfPresent(request.getBiography(), record::setBiography);
+        updateIfPresent(request.getAvatarUrl(), record::setAvatarUrl);
         updateIfPresent(request.getProfileUrl(), record::setProfileUrl);
         if (request.getProfilePhotos() != null) {
             record.setProfilePhotos(convertListToJsonb(request.getProfilePhotos()));

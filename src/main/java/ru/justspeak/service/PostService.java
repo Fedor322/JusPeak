@@ -11,6 +11,7 @@ import ru.justspeak.api.dto.ApiPostsPostIdPut200Response;
 import ru.justspeak.api.dto.PostCreateRequest;
 import ru.justspeak.api.dto.PostResponse;
 import ru.justspeak.api.dto.PostUpdateRequest;
+import ru.justspeak.exception.ResourceNotFoundException;
 import ru.justspeak.jooq.tables.records.PostsRecord;
 import ru.justspeak.repository.PostRepository;
 import ru.justspeak.util.PostMapper;
@@ -67,10 +68,9 @@ public class PostService {
     }
 
     public PostResponse getPostById(Long postId) {
-        postRepository.incrementViews(postId);
-        PostsRecord record = postRepository.findById(postId);
+        PostsRecord record = postRepository.incrementViewsAndGet(postId);
         if (record == null) {
-            return null;
+            throw new ResourceNotFoundException("Post not found with id: " + postId);
         }
         return PostMapper.toResponse(record);
     }
@@ -78,20 +78,29 @@ public class PostService {
     public ApiPostsPostIdPut200Response updatePost(Long id, PostUpdateRequest request, Long userId) {
         PostsRecord record = postRepository.findById(id);
         if (record == null) {
-            throw new RuntimeException("Post not found with id: " + id);
+            throw new ResourceNotFoundException("Post not found with id: " + id);
         }
         if (!record.getUserid().equals(userId)) {
             throw new AccessDeniedException("Access denied: you are not the author of this post");
         }
-        PostsRecord newRecord = PostMapper.updateFromResponse(record, request);
-        postRepository.update(newRecord);
-        return new ApiPostsPostIdPut200Response().id(newRecord.getId()).title(newRecord.getTitle());
+        if (request.getTitle() == null && request.getContent() == null && request.getPublished() == null) {
+            return new ApiPostsPostIdPut200Response()
+                    .id(id)
+                    .title(record.getTitle());
+        }
+        int updated = postRepository.updateFields(id, request.getTitle(), request.getContent(), request.getPublished());
+        if (updated == 0) {
+            throw new ResourceNotFoundException("Post not found with id: " + id);
+        }
+        return new ApiPostsPostIdPut200Response()
+                .id(id)
+                .title(request.getTitle() != null ? request.getTitle() : record.getTitle());
     }
 
     public void deletePost(Long id, Long userId) {
         PostsRecord record = postRepository.findById(id);
         if (record == null) {
-            throw new RuntimeException("Post not found with id: " + id);
+            throw new ResourceNotFoundException("Post not found with id: " + id);
         }
         if (!record.getUserid().equals(userId)) {
             throw new AccessDeniedException("Access denied: you are not the author of this post");

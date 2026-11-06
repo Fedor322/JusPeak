@@ -56,11 +56,4 @@ public class PostMapper {
                 .totalElements(totalElements)
                 .totalPages(totalPages);
     }
-
-    public static PostsRecord updateFromResponse(PostsRecord record, PostUpdateRequest request) {
-        return record
-                .setTitle(request.getTitle())
-                .setPublished(request.getPublished())
-                .setContent(request.getContent());
-    }
 }
