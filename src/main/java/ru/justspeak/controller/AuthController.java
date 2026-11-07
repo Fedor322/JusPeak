@@ -1,9 +1,9 @@
 package ru.justspeak.controller;
 
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,13 +15,9 @@ import ru.justspeak.api.dto.UserRegisterRequest;
 import ru.justspeak.service.AuthService;
 
 
-import java.util.UUID;
-
 @RestController
 @RequestMapping("api/auth")
 public class AuthController{
-
-
 
     private final AuthService authService;
 
@@ -30,6 +26,7 @@ public class AuthController{
     }
 
 
+    @SecurityRequirements
     @PostMapping("/register")
     public ResponseEntity<ApiAuthRegisterPost201Response> register(
             @Valid @RequestBody UserRegisterRequest registerRequest
@@ -38,11 +35,10 @@ public class AuthController{
     }
 
 
+    @SecurityRequirements
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody UserLoginRequest loginRequest) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody UserLoginRequest loginRequest) {
         return ResponseEntity.ok(authService.login(loginRequest));
     }
-
-
 
 }

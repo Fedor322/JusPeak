@@ -1,65 +1,59 @@
 package ru.justspeak.service;
 
-
-import org.springframework.security.core.Authentication;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import ru.justspeak.api.dto.ProfileResponse;
 import ru.justspeak.api.dto.UpdateProfileRequest;
+import ru.justspeak.exception.ResourceNotFoundException;
 import ru.justspeak.jooq.tables.records.ProfilesRecord;
 import ru.justspeak.repository.ProfileRepository;
 import ru.justspeak.util.ProfileMapper;
-
-import java.nio.file.AccessDeniedException;
-
-import static ru.justspeak.util.ProfileMapper.mapToProfileResponse;
-
 
 @Service
 public class ProfileService {
 
     private final ProfileRepository profileRepository;
 
-
     public ProfileService(ProfileRepository profileRepository) {
         this.profileRepository = profileRepository;
     }
 
-
     public ProfileResponse getProfileById(Long profileId) {
         ProfilesRecord profilesRecord = profileRepository.findById(profileId);
-        //TODO обработка ошибок
+        if (profilesRecord == null) {
+            throw new ResourceNotFoundException("Profile not found with id: " + profileId);
+        }
         return ProfileMapper.mapToProfileResponse(profilesRecord);
     }
 
     public ProfileResponse getProfileByUserId(Long userId) {
         ProfilesRecord record = profileRepository.findByUserId(userId);
-        //TODO обработка ошибок
+        if (record == null) {
+            throw new ResourceNotFoundException("Profile not found for userId: " + userId);
+        }
         return ProfileMapper.mapToProfileResponse(record);
     }
 
-
-
-
-    public ProfileResponse updateProfile(Long profileId, UpdateProfileRequest request, Long userId) throws AccessDeniedException {
+    public ProfileResponse updateProfile(Long profileId, UpdateProfileRequest request, Long userId) {
         ProfilesRecord profilesRecord = profileRepository.findById(profileId);
-
-        //TODO обработка ошибок
+        if (profilesRecord == null) {
+            throw new ResourceNotFoundException("Profile not found with id: " + profileId);
+        }
 
         if (!profilesRecord.getUserId().equals(userId)) {
-            throw new AccessDeniedException("Access denied");
+            throw new AccessDeniedException("Access denied: you can only update your own profile");
         }
+
         ProfileMapper.updateProfileRecordFromRequest(profilesRecord, request);
-        profileRepository.update(profilesRecord);
+        if (!profilesRecord.changed()) {
+            return ProfileMapper.mapToProfileResponse(profilesRecord);
+        }
+
+        int updated = profileRepository.update(profilesRecord, userId);
+        if (updated == 0) {
+            throw new ResourceNotFoundException("Profile not found with id: " + profileId);
+        }
+
         return ProfileMapper.mapToProfileResponse(profilesRecord);
-
     }
-
-
-
-
-
-
-
-
-
 }

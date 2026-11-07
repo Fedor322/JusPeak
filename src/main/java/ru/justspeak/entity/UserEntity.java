@@ -1,11 +1,5 @@
 package ru.justspeak.entity;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-
-
-
 public class UserEntity {
     private String username;
     private String email;

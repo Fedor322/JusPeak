@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import java.time.LocalDateTime;
 
 @Data
-@Document(collation = "comments")
+@Document(collection = "comments")
 public class CommentDocument {
 
     @Id
