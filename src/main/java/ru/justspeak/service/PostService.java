@@ -41,10 +41,22 @@ public class PostService {
         return PostMapper.toPost201Response(savedRecord);
     }
 
-    public ApiPostsGet200Response getPosts(int page, int size, String sortBy, String direction, Boolean published) {
-        Condition condition = DSL.noCondition();
-        if (published != null) {
-            condition = condition.and(POSTS.PUBLISHED.eq(published));
+    public ApiPostsGet200Response getPosts(int page, int size, String sortBy, String direction, Boolean published, Long currentUserId) {
+        Condition condition;
+        if (published == null) {
+            if (currentUserId != null) {
+                condition = POSTS.PUBLISHED.eq(true).or(POSTS.USERID.eq(currentUserId));
+            } else {
+                condition = POSTS.PUBLISHED.eq(true);
+            }
+        } else if (Boolean.TRUE.equals(published)) {
+            condition = POSTS.PUBLISHED.eq(true);
+        } else {
+            if (currentUserId != null) {
+                condition = POSTS.PUBLISHED.eq(false).and(POSTS.USERID.eq(currentUserId));
+            } else {
+                condition = DSL.falseCondition();
+            }
         }
 
         SortField<?> sortField = "asc".equalsIgnoreCase(direction) ? POSTS.CREATED_AT.asc() : POSTS.CREATED_AT.desc();
@@ -62,17 +74,30 @@ public class PostService {
         return PostMapper.toPostsGet200Response(records, totalElements, totalPages);
     }
 
+    public ApiPostsGet200Response getPosts(int page, int size, String sortBy, String direction, Boolean published) {
+        return getPosts(page, size, sortBy, direction, published, null);
+    }
+
     public ApiPostsGet200Response getPostsByUserId(Long userId) {
         List<PostsRecord> records = postRepository.findAllPostByUserId(userId);
         return PostMapper.toPostsGet200Response(records);
     }
 
-    public PostResponse getPostById(Long postId) {
-        PostsRecord record = postRepository.incrementViewsAndGet(postId);
+    public PostResponse getPostById(Long postId, Long currentUserId) {
+        PostsRecord record = postRepository.findById(postId);
         if (record == null) {
             throw new ResourceNotFoundException("Post not found with id: " + postId);
         }
-        return PostMapper.toResponse(record);
+        boolean isAuthor = currentUserId != null && currentUserId.equals(record.getUserid());
+        if (!Boolean.TRUE.equals(record.getPublished()) && !isAuthor) {
+            throw new ResourceNotFoundException("Post not found with id: " + postId);
+        }
+        PostsRecord updatedRecord = postRepository.incrementViewsAndGet(postId);
+        return PostMapper.toResponse(updatedRecord != null ? updatedRecord : record);
+    }
+
+    public PostResponse getPostById(Long postId) {
+        return getPostById(postId, null);
     }
 
     public ApiPostsPostIdPut200Response updatePost(Long id, PostUpdateRequest request, Long userId) {

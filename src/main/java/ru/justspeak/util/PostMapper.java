@@ -25,6 +25,7 @@ public class PostMapper {
                 .id(record.getId())
                 .userId(record.getUserid())
                 .title(record.getTitle())
+                .content(record.getContent())
                 .published(record.getPublished())
                 .views(record.getViews() != null ? record.getViews().intValue() : 0)
                 .commentsCount(record.getCommentCount() != null ? record.getCommentCount().intValue() : 0)
