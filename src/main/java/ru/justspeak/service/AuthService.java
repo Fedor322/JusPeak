@@ -1,13 +1,14 @@
 package ru.justspeak.service;
 
+import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import ru.justspeak.api.dto.ApiAuthRegisterPost201Response;
 import ru.justspeak.api.dto.AuthResponse;
 import ru.justspeak.api.dto.UserLoginRequest;
@@ -55,7 +56,10 @@ public class AuthService {
         try {
             savedUser = userRepository.save(recordUser);
         } catch (DataIntegrityViolationException e) {
-            throw new DuplicateResourceException("User with this username or email already exists");
+            if (e.getMostSpecificCause() instanceof PSQLException ps && "23505".equals(ps.getSQLState())) {
+                throw new DuplicateResourceException("User with this username or email already exists");
+            }
+            throw e;
         }
 
         profileRepository.create(savedUser, userRegisterRequest);
@@ -78,7 +82,7 @@ public class AuthService {
                 .userId(userDetails.getId())
                 .username(userLoginRequest.getUsername())
                 .roles(userDetails.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
+                        .map(auth -> auth.getAuthority())
                         .toList());
     }
 }

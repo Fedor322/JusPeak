@@ -32,6 +32,7 @@
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <jooq.version>3.18.7</jooq.version>
         <postgresql.version>42.7.4</postgresql.version>
+        <lombok.version>1.18.48</lombok.version>
     </properties>
     <dependencies>
         <dependency>
@@ -101,7 +102,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.6.0</version>
+            <version>2.8.5</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -237,6 +238,13 @@
                             </properties>
                             <outputSchemaToDefault>true</outputSchemaToDefault>
                             <forcedTypes>
+                                <!-- DDLDatabase exposes JSONB as JSON; the binding restores the PostgreSQL cast. -->
+                                <forcedType>
+                                    <userType>java.util.List&lt;java.lang.String&gt;</userType>
+                                    <binding>ru.justspeak.jooq.binding.ProfilePhotosBinding</binding>
+                                    <includeExpression>(?i:.*\.profiles\.profile_photos)</includeExpression>
+                                    <includeTypes>(?i:json|jsonb)</includeTypes>
+                                </forcedType>
                                 <forcedType>
                                     <name>JSONB</name>
                                     <includeTypes>(?i:json|jsonb)</includeTypes>
@@ -281,9 +289,28 @@
                                 <dateLibrary>java8</dateLibrary>
                                 <interfaceOnly>true</interfaceOnly>
                                 <useSpringBoot3>true</useSpringBoot3>
-                                <useBeanValidation>false</useBeanValidation>
+                                <useBeanValidation>true</useBeanValidation>
                             </configOptions>
 
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/openapi/src/main/java</source>
+                            </sources>
                         </configuration>
                     </execution>
                 </executions>

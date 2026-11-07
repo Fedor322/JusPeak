@@ -40,8 +40,8 @@ public class JwtService {
 
     public boolean isClaimsValid(Claims claims, UserDetails userDetails) {
         final String username = claims.getSubject();
-        Date expiration = claims.getExpiration();
-        boolean isExpired = expiration != null && expiration.before(new Date());
+        Date tokenExpiration = claims.getExpiration();
+        boolean isExpired = tokenExpiration != null && tokenExpiration.before(new Date());
         return (username != null && username.equals(userDetails.getUsername())) && !isExpired;
     }
 

@@ -1,13 +1,12 @@
 package ru.justspeak.util;
 
+import java.util.List;
+
 import ru.justspeak.api.dto.ApiPostsGet200Response;
 import ru.justspeak.api.dto.ApiPostsPost201Response;
 import ru.justspeak.api.dto.PostCreateRequest;
 import ru.justspeak.api.dto.PostResponse;
-import ru.justspeak.api.dto.PostUpdateRequest;
 import ru.justspeak.jooq.tables.records.PostsRecord;
-
-import java.util.List;
 
 public class PostMapper {
 
