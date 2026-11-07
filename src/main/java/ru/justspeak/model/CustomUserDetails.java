@@ -14,6 +14,7 @@ public class CustomUserDetails implements UserDetails {
     private final String username;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
+    private final boolean deleted;
 
     public CustomUserDetails(UsersRecord record) {
         this.id = record.getId();
@@ -22,10 +23,15 @@ public class CustomUserDetails implements UserDetails {
         this.authorities = Collections.singletonList(
                 new SimpleGrantedAuthority(record.getRole())
         );
+        this.deleted = Boolean.TRUE.equals(record.getDeleted());
     }
 
     public Long getId() {
         return id;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
     }
 
     @Override
@@ -41,5 +47,25 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return !deleted;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return !deleted;
     }
 }

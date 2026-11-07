@@ -53,6 +53,11 @@ public class JwtService {
                 .getPayload();
     }
 
+    public Date extractExpiration(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.getExpiration();
+    }
+
     private SecretKey getSignInKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
